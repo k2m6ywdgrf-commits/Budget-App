@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>BudgetApp</title>
+    <title>LuminaBudget</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -116,20 +116,20 @@
             <section id="main-display-card" class="glass-card rounded-3xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden transition-all duration-300 glow-emerald">
                 <div class="absolute -top-10 -left-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
                 
-                <div class="bg-black/40 p-1 rounded-xl flex w-full max-w-[260px] border border-white/5 mb-5 z-10">
+                <div class="bg-black/40 p-1 rounded-xl flex w-full max-w-[260px] border border-white/5 mb-5 z-10 mx-auto">
                     <button onclick="setPeriod('jour')" id="btn-period-jour" class="flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 text-slate-400">Jour</button>
                     <button onclick="setPeriod('semaine')" id="btn-period-semaine" class="flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 text-slate-400">Semaine</button>
                     <button onclick="setPeriod('mois')" id="btn-period-mois" class="flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-white/10 text-white shadow-sm">Mois</button>
                 </div>
 
-                <span class="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Reste à vivre</span>
-                <div class="flex items-baseline justify-center">
+                <span class="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1 block w-full text-center">Reste à vivre</span>
+                <div class="flex items-baseline justify-center w-full text-center">
                     <span id="display-amount" class="text-5xl font-extrabold tracking-tight text-emerald-400 text-glow-emerald transition-all duration-300">0</span>
                     <span id="display-currency" class="text-2xl font-bold text-emerald-400 text-glow-emerald ml-1 transition-all duration-300">€</span>
                 </div>
-                <p id="display-period-text" class="text-xs text-slate-400 mt-2 font-medium">Enveloppe globale disponible</p>
+                <p id="display-period-text" class="text-xs text-slate-400 mt-2 font-medium text-center w-full">Enveloppe globale disponible</p>
 
-                <div id="budget-warning" class="hidden mt-4 pt-3 border-t border-rose-500/20 w-full flex items-center justify-center gap-2 text-rose-400 text-xs font-medium">
+                <div id="budget-warning" class="hidden mt-4 pt-3 border-t border-rose-500/20 w-full flex items-center justify-center gap-2 text-rose-400 text-xs font-medium text-center">
                     <i class="fa-solid fa-triangle-exclamation text-glow-pink"></i> Balance négative ! Vos enveloppes dépassent vos recettes.
                 </div>
             </section>
@@ -146,18 +146,21 @@
                     </div>
                 </div>
 
-                <div class="relative h-[160px] flex items-center justify-center mx-auto w-full">
+                <div class="relative h-[150px] flex items-center justify-center mx-auto w-full">
                     <canvas id="budgetChart"></canvas>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 pt-2 border-t border-white/5">
-                    <div class="bg-white/5 rounded-2xl p-3 border border-white/5 flex flex-col">
-                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Total Recettes</span>
-                        <span id="display-total-recettes" class="text-lg font-extrabold text-cyan-400 mt-0.5">0 €</span>
+                <div id="chart-legend" class="mt-2 pt-2 border-t border-white/5 space-y-1 text-xs max-h-36 overflow-y-auto no-scrollbar">
                     </div>
-                    <div class="bg-white/5 rounded-2xl p-3 border border-white/5 flex flex-col">
-                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Total Dépenses</span>
-                        <span id="display-total-depenses" class="text-lg font-extrabold text-rose-400 mt-0.5">0 €</span>
+
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <div class="bg-white/5 rounded-2xl p-3 border border-white/5 flex flex-col items-center text-center justify-center">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block w-full text-center">Total Recettes</span>
+                        <span id="display-total-recettes" class="text-lg font-extrabold text-cyan-400 mt-0.5 block w-full text-center">0 €</span>
+                    </div>
+                    <div class="bg-white/5 rounded-2xl p-3 border border-white/5 flex flex-col items-center text-center justify-center">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block w-full text-center">Total Dépenses</span>
+                        <span id="display-total-depenses" class="text-lg font-extrabold text-rose-400 mt-0.5 block w-full text-center">0 €</span>
                     </div>
                 </div>
             </section>
@@ -201,7 +204,7 @@
             </button>
             <button onclick="switchTab('savings')" id="nav-btn-savings" class="flex flex-col items-center justify-center space-y-1 text-slate-400 active:scale-95 transition-transform">
                 <i class="fa-solid fa-piggy-bank text-xl"></i>
-                <span class="text-[11px] font-medium">Objectifs Épargne</span>
+                <span class="text-[11px] font-medium text-slate-400">Objectifs Épargne</span>
             </button>
         </nav>
 
@@ -216,8 +219,8 @@
                     </button>
                 </div>
 
-                <div class="space-y-3">
-                    <p class="text-xs text-slate-400 leading-relaxed">Vos données restent stockées localement sur votre iPhone (PWA).</p>
+                <div class="space-y-3 text-center">
+                    <p class="text-xs text-slate-400 leading-relaxed text-center w-full">Vos données restent stockées localement sur votre iPhone (PWA).</p>
                     <button onclick="exportData()" class="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-slate-200 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 active:scale-98 transition-transform">
                         <i class="fa-solid fa-download text-cyan-400"></i> Sauvegarder mes données (JSON)
                     </button>
@@ -258,7 +261,7 @@
                             </select>
                         </div>
                         <div class="flex gap-2">
-                            <input type="number" id="new-cat-amount" placeholder="Montant mensuel (€)" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                            <input type="number" id="new-cat-amount" inputmode="decimal" step="any" placeholder="Montant mensuel (€)" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500">
                             <button id="btn-submit-cat" onclick="addCategory()" class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-5 rounded-xl font-bold text-xs active:scale-95 transition-transform flex items-center justify-center whitespace-nowrap">
                                 <i class="fa-solid fa-plus mr-1"></i> Ajouter
                             </button>
@@ -287,11 +290,11 @@
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-xs text-slate-400 mb-1">Montant Cible (€)</label>
-                            <input type="number" id="goal-target" placeholder="Ex: 1000" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500">
+                            <input type="number" id="goal-target" inputmode="numeric" placeholder="Ex: 1000" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500">
                         </div>
                         <div>
                             <label class="block text-xs text-slate-400 mb-1">Déjà Épargné (€)</label>
-                            <input type="number" id="goal-current" placeholder="Ex: 0" value="0" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500">
+                            <input type="number" id="goal-current" inputmode="numeric" placeholder="Ex: 0" value="0" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500">
                         </div>
                     </div>
                     <button onclick="addSavingsGoal()" class="w-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 py-2.5 rounded-xl font-semibold text-sm mt-2 active:scale-95 transition-transform">
@@ -431,7 +434,6 @@
             const displayCard = document.getElementById('main-display-card');
             const warningEl = document.getElementById('budget-warning');
             
-            // Correction : La devise (€) change de couleur en harmonie parfaite avec le montant
             if (baseResteMois < 0) {
                 displayCard.className = "glass-card rounded-3xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden transition-all duration-300 glow-pink";
                 displayEl.className = "text-5xl font-extrabold tracking-tight text-rose-400 text-glow-pink transition-all duration-300";
@@ -464,7 +466,6 @@
             calculateBudget();
         }
 
-        // Gestion et Rendu du Graphique Circulaire (Donut)
         function setChartFilter(filter) {
             chartFilter = filter;
             ['tout', 'recette', 'depense'].forEach(f => {
@@ -474,9 +475,12 @@
             updateDynamicChart();
         }
 
+        // Gestion et Rendu du Graphique Circulaire & de sa légende par ligne
         function updateDynamicChart() {
             const ctx = document.getElementById('budgetChart').getContext('2d');
-            
+            const legendContainer = document.getElementById('chart-legend');
+            legendContainer.innerHTML = ''; // Clear prior legend lines
+
             let filtered = [];
             if (chartFilter === 'tout') filtered = categories;
             else filtered = categories.filter(c => c.type === chartFilter);
@@ -487,11 +491,12 @@
                 budgetChart = new Chart(ctx, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Vide'],
+                        labels: ['Aucune donnée'],
                         datasets: [{ data: [1], backgroundColor: ['rgba(255,255,255,0.04)'], borderColor: ['rgba(255,255,255,0.08)'] }]
                     },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, cutout: '72%' }
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, cutout: '74%' }
                 });
+                legendContainer.innerHTML = '<p class="text-slate-500 text-[11px] text-center py-2 w-full">Aucun flux à afficher pour ce filtre.</p>';
                 return;
             }
 
@@ -525,7 +530,7 @@
                         backgroundColor: backgroundColors,
                         borderColor: borderColors,
                         borderWidth: 1.5,
-                        hoverOffset: 6
+                        hoverOffset: 4
                     }]
                 },
                 options: {
@@ -545,8 +550,23 @@
                             }
                         }
                     },
-                    cutout: '72%'
+                    cutout: '74%'
                 }
+            });
+
+            // Construction de la légende par ligne sous le graphique
+            filtered.forEach((cat, index) => {
+                const color = borderColors[index];
+                const row = document.createElement('div');
+                row.className = "flex items-center justify-between py-1 border-b border-white/5 last:border-none text-slate-300 text-[11px]";
+                row.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full flex-shrink-0" style="background-color: ${color}"></span>
+                        <span class="truncate max-w-[180px]">${cat.name}</span>
+                    </div>
+                    <span class="font-bold text-slate-100">${formatNumber(cat.amount)} €</span>
+                `;
+                legendContainer.appendChild(row);
             });
         }
 
@@ -554,6 +574,11 @@
         function renderCategoriesBars(totalRecettes) {
             const container = document.getElementById('categories-container');
             container.innerHTML = '';
+
+            if(categories.length === 0) {
+                container.innerHTML = '<p class="text-slate-500 text-xs text-center py-6 w-full">Cliquez sur configurer pour ajouter vos enveloppes.</p>';
+                return;
+            }
 
             categories.forEach(cat => {
                 let percentage = 0;
@@ -593,7 +618,6 @@
             });
         }
 
-        // Rendu complet de la liste à l'intérieur de la grande modale Plein Écran
         function renderCategoriesModalList() {
             const mContainer = document.getElementById('modal-categories-list');
             mContainer.innerHTML = '';
@@ -632,7 +656,6 @@
             });
         }
 
-        // Actions de configuration des Enveloppes
         function openCategoryModal() {
             renderCategoriesModalList();
             toggleModal('category-modal');
@@ -643,7 +666,6 @@
             toggleModal('category-modal');
         }
 
-        // Charger une enveloppe dans le formulaire pour la modifier
         function editCategory(id) {
             const cat = categories.find(c => c.id === id);
             if (!cat) return;
@@ -653,7 +675,6 @@
             document.getElementById('new-cat-amount').value = cat.amount;
             document.getElementById('new-cat-type').value = cat.type;
 
-            // Mutation visuelle du formulaire vers l'état d'édition
             document.getElementById('form-cat-title').innerText = "Modifier l'enveloppe";
             document.getElementById('btn-submit-cat').innerHTML = '<i class="fa-solid fa-check mr-1"></i> Sauver';
             document.getElementById('btn-submit-cat').className = "bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 px-5 rounded-xl font-bold text-xs active:scale-95 transition-transform flex items-center justify-center whitespace-nowrap";
@@ -683,21 +704,18 @@
             const type = typeSelect.value;
 
             if (name && amount > 0) {
-                // Utilisation de notre IA prédictive textuelle locale
                 const predictedIcon = predictIconByKeyword(name, type);
 
                 if (editingCategoryId !== null) {
-                    // Mode modification : On met à jour l'enveloppe ciblée
                     const catIndex = categories.findIndex(c => c.id === editingCategoryId);
                     if (catIndex !== -1) {
                         categories[catIndex].name = name;
                         categories[catIndex].amount = amount;
                         categories[catIndex].type = type;
-                        categories[catIndex].icon = predictedIcon; // Re-prédiction dynamique
+                        categories[catIndex].icon = predictedIcon;
                     }
                     resetCategoryForm();
                 } else {
-                    // Mode création classique
                     categories.push({
                         id: Date.now(),
                         name: name,
@@ -721,10 +739,14 @@
             renderCategoriesModalList();
         }
 
-        // Onglet 2: Rendu Épargne (Boutons tactiles XL)
         function renderSavingsGoals() {
             const container = document.getElementById('savings-container');
             container.innerHTML = '';
+
+            if (savingsGoals.length === 0) {
+                container.innerHTML = '<p class="text-slate-500 text-xs text-center py-8 w-full">Aucun projet d\'épargne en cours. Créez-en un !</p>';
+                return;
+            }
 
             savingsGoals.forEach(goal => {
                 const rawPercent = goal.target > 0 ? (goal.current / goal.target) * 100 : 0;
@@ -747,7 +769,7 @@
                                         stroke-linecap="round"
                                         class="drop-shadow-[0_0_6px_rgba(6,182,212,0.5)]" />
                             </svg>
-                            <span class="absolute text-sm font-bold text-cyan-400 text-glow-cyan">${percent}%</span>
+                            <span class="absolute text-sm font-bold text-cyan-400 text-glow-cyan text-center w-full">${percent}%</span>
                         </div>
 
                         <div class="flex-1 min-w-0">
@@ -764,7 +786,7 @@
                     </div>
                     
                     <div class="pt-2 border-t border-white/5 flex items-center gap-2">
-                        <input type="number" id="input-add-money-${goal.id}" placeholder="+ Épargner (Ex: 50)" class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 h-12 text-sm font-semibold text-white focus:outline-none focus:border-cyan-500 placeholder-slate-500">
+                        <input type="number" id="input-add-money-${goal.id}" inputmode="numeric" placeholder="+ Épargner (Ex: 50)" class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 h-12 text-sm font-semibold text-white focus:outline-none focus:border-cyan-500 placeholder-slate-500">
                         <button onclick="addMoneyToGoal(${goal.id})" class="h-12 w-16 bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-2xl flex items-center justify-center active:scale-95 transition-transform text-lg shadow-lg">
                             <i class="fa-solid fa-plus"></i>
                         </button>
@@ -822,7 +844,6 @@
             else el.classList.add('hidden');
         }
 
-        // Sauvegardes Externes (JSON)
         function exportData() {
             const dataStr = localStorage.getItem('lumina_budget_data');
             if (!dataStr) return alert("Aucune donnée à exporter.");
