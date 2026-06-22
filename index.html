@@ -150,7 +150,7 @@
                     <canvas id="budgetChart"></canvas>
                 </div>
 
-                <div id="chart-legend" class="mt-2 pt-2 border-t border-white/5 space-y-1 text-xs max-h-36 overflow-y-auto no-scrollbar">
+                <div id="chart-legend" class="mt-2 pt-2 border-t border-white/5 space-y-1 text-xs">
                     </div>
 
                 <div class="grid grid-cols-2 gap-3 pt-2">
@@ -307,7 +307,6 @@
     </div>
 
     <script>
-        // State variables
         let currentPeriod = 'mois';
         let chartFilter = 'tout';
         let editingCategoryId = null;
@@ -383,7 +382,6 @@
             }
         }
 
-        // Moteur IA Prédictif local pour choisir l'icône automatiquement
         function predictIconByKeyword(name, type) {
             const n = name.toLowerCase();
             if (type === 'recette') {
@@ -405,7 +403,6 @@
             }
         }
 
-        // Engine de Calcul & Synchronisation
         function calculateBudget() {
             let totalRecettes = 0;
             let totalDepenses = 0;
@@ -475,11 +472,11 @@
             updateDynamicChart();
         }
 
-        // Gestion et Rendu du Graphique Circulaire & de sa légende par ligne
+        // CORRIGÉ : Génération de couleurs séquentielles distinctes pour les recettes et les dépenses
         function updateDynamicChart() {
             const ctx = document.getElementById('budgetChart').getContext('2d');
             const legendContainer = document.getElementById('chart-legend');
-            legendContainer.innerHTML = ''; // Clear prior legend lines
+            legendContainer.innerHTML = ''; 
 
             let filtered = [];
             if (chartFilter === 'tout') filtered = categories;
@@ -503,22 +500,42 @@
             const labels = filtered.map(c => c.name);
             const datasetValues = filtered.map(c => c.amount);
             
-            const backgroundColors = filtered.map((c, i) => {
-                if (c.type === 'recette') return 'rgba(6, 182, 212, 0.6)'; // Cyan
-                const palette = [
-                    'rgba(244, 63, 94, 0.6)',  // Rose
-                    'rgba(168, 85, 247, 0.6)', // Violet
-                    'rgba(249, 115, 22, 0.6)', // Orange
-                    'rgba(234, 179, 8, 0.6)',  // Jaune
-                    'rgba(236, 72, 153, 0.6)'  // Rose clair
-                ];
-                return palette[i % palette.length];
+            // Indexateurs locaux pour distribuer des couleurs différentes par catégorie
+            let recetteIdx = 0;
+            let depenseIdx = 0;
+
+            const backgroundColors = filtered.map((c) => {
+                if (c.type === 'recette') {
+                    const palette = [
+                        'rgba(6, 182, 212, 0.6)',   // Cyan
+                        'rgba(16, 185, 129, 0.6)',  // Émeraude
+                        'rgba(20, 184, 166, 0.6)',  // Turquoise
+                        'rgba(59, 130, 246, 0.6)'   // Bleu clair
+                    ];
+                    return palette[recetteIdx++ % palette.length];
+                } else {
+                    const palette = [
+                        'rgba(244, 63, 94, 0.6)',   // Rose
+                        'rgba(168, 85, 247, 0.6)',  // Violet
+                        'rgba(249, 115, 22, 0.6)',   // Orange
+                        'rgba(234, 179, 8, 0.6)',    // Jaune
+                        'rgba(236, 72, 153, 0.6)'    // Fuchsia
+                    ];
+                    return palette[depenseIdx++ % palette.length];
+                }
             });
 
-            const borderColors = filtered.map((c, i) => {
-                if (c.type === 'recette') return '#06b6d4';
-                const palette = ['#f43f5e', '#a855f7', '#f97316', '#eab308', '#ec4899'];
-                return palette[i % palette.length];
+            recetteIdx = 0;
+            depenseIdx = 0;
+
+            const borderColors = filtered.map((c) => {
+                if (c.type === 'recette') {
+                    const palette = ['#06b6d4', '#10b981', '#14b8a6', '#3b82f6'];
+                    return palette[recetteIdx++ % palette.length];
+                } else {
+                    const palette = ['#f43f5e', '#a855f7', '#f97316', '#eab308', '#ec4899'];
+                    return palette[depenseIdx++ % palette.length];
+                }
             });
 
             budgetChart = new Chart(ctx, {
@@ -554,7 +571,7 @@
                 }
             });
 
-            // Construction de la légende par ligne sous le graphique
+            // Injection des lignes dans le bloc de légende (hauteur 100% visible)
             filtered.forEach((cat, index) => {
                 const color = borderColors[index];
                 const row = document.createElement('div');
@@ -570,7 +587,6 @@
             });
         }
 
-        // Affichage des enveloppes sur l'écran d'accueil
         function renderCategoriesBars(totalRecettes) {
             const container = document.getElementById('categories-container');
             container.innerHTML = '';
