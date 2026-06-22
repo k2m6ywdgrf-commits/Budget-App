@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>LuminaBudget</title>
+    <title>BudgetApp</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         *, *::before, *::after {
             box-sizing: border-box;
@@ -39,7 +40,7 @@
         }
 
         .glass-modal {
-            background: rgba(15, 12, 35, 0.85);
+            background: rgba(15, 12, 35, 0.92);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -86,7 +87,6 @@
             scrollbar-width: none;
         }
         
-        /* Custom UI Toggles */
         .tab-active-cyan {
             color: #06b6d4;
             text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
@@ -124,8 +124,8 @@
 
                 <span class="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Reste à vivre</span>
                 <div class="flex items-baseline justify-center">
-                    <span id="display-amount" class="text-5xl font-extrabold tracking-tight text-emerald-400 text-glow-emerald transition-all duration-300">1 000</span>
-                    <span class="text-2xl font-bold text-emerald-400 ml-1">€</span>
+                    <span id="display-amount" class="text-5xl font-extrabold tracking-tight text-emerald-400 text-glow-emerald transition-all duration-300">0</span>
+                    <span id="display-currency" class="text-2xl font-bold text-emerald-400 text-glow-emerald ml-1 transition-all duration-300">€</span>
                 </div>
                 <p id="display-period-text" class="text-xs text-slate-400 mt-2 font-medium">Enveloppe globale disponible</p>
 
@@ -134,11 +134,23 @@
                 </div>
             </section>
 
-            <section class="glass-card rounded-3xl p-4 space-y-1">
-                <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-2">
-                    <i class="fa-solid fa-calculator text-purple-400"></i> Flux calculés ce mois
-                </h2>
-                <div class="grid grid-cols-2 gap-3">
+            <section class="glass-card rounded-3xl p-5 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-purple-400"></i> Flux & Graphique
+                    </h2>
+                    <div class="bg-black/40 p-0.5 rounded-lg flex border border-white/5 text-[10px] font-bold">
+                        <button onclick="setChartFilter('tout')" id="btn-filter-tout" class="px-2.5 py-1 rounded bg-white/10 text-white transition-all">Tout</button>
+                        <button onclick="setChartFilter('recette')" id="btn-filter-recette" class="px-2.5 py-1 rounded text-slate-400 transition-all">Recettes</button>
+                        <button onclick="setChartFilter('depense')" id="btn-filter-depense" class="px-2.5 py-1 rounded text-slate-400 transition-all">Dépenses</button>
+                    </div>
+                </div>
+
+                <div class="relative h-[160px] flex items-center justify-center mx-auto w-full">
+                    <canvas id="budgetChart"></canvas>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2 border-t border-white/5">
                     <div class="bg-white/5 rounded-2xl p-3 border border-white/5 flex flex-col">
                         <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Total Recettes</span>
                         <span id="display-total-recettes" class="text-lg font-extrabold text-cyan-400 mt-0.5">0 €</span>
@@ -153,10 +165,10 @@
             <section class="space-y-3">
                 <div class="flex justify-between items-center px-1">
                     <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                        <i class="fa-solid fa-chart-pie text-emerald-400"></i> Répartition enveloppes
+                        <i class="fa-solid fa-list-ul text-emerald-400"></i> Vos enveloppes
                     </h2>
                     <button onclick="openCategoryModal()" class="text-xs font-bold text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 active:scale-95 transition-transform">
-                        <i class="fa-solid fa-plus text-[10px]"></i> Gérer
+                        <i class="fa-solid fa-sliders text-[10px]"></i> Configurer
                     </button>
                 </div>
 
@@ -205,52 +217,49 @@
                 </div>
 
                 <div class="space-y-3">
-                    <p class="text-xs text-slate-400 leading-relaxed">Vos données sont stockées localement et en toute sécurité dans l'espace permanent de votre écran d'accueil iOS (PWA).</p>
-                    
+                    <p class="text-xs text-slate-400 leading-relaxed">Vos données restent stockées localement sur votre iPhone (PWA).</p>
                     <button onclick="exportData()" class="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-slate-200 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 active:scale-98 transition-transform">
                         <i class="fa-solid fa-download text-cyan-400"></i> Sauvegarder mes données (JSON)
                     </button>
-                    
                     <label class="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-slate-200 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-transform">
                         <i class="fa-solid fa-upload text-purple-400"></i> Importer une sauvegarde
                         <input type="file" id="import-file" onchange="importData(event)" class="hidden" accept=".json">
                     </label>
                 </div>
-
-                <div class="pt-4 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-500">
-                    <span>Version 1.1.0</span>
-                    <span>100% Hors-ligne</span>
-                </div>
             </div>
         </div>
 
-        <div id="category-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
-            <div class="glass-modal w-full max-w-sm rounded-3xl p-6 space-y-5 shadow-2xl">
-                <div class="flex justify-between items-center">
+        <div id="category-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md">
+            <div class="glass-modal w-full max-w-md h-[85vh] sm:h-[80vh] rounded-t-3xl sm:rounded-3xl p-6 flex flex-col shadow-2xl overflow-hidden transition-all duration-300">
+                
+                <div class="flex justify-between items-center pb-4 border-b border-white/10 flex-shrink-0">
                     <h3 class="font-bold text-base text-white flex items-center gap-2">
                         <i class="fa-solid fa-tags text-emerald-400"></i> Configurer vos enveloppes
                     </h3>
-                    <button onclick="toggleModal('category-modal')" class="text-slate-400 hover:text-white">
-                        <i class="fa-solid fa-xmark text-lg"></i>
+                    <button onclick="closeCategoryModal()" class="text-slate-400 hover:text-white w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark text-base"></i>
                     </button>
                 </div>
 
-                <div id="modal-categories-list" class="space-y-2 max-h-48 overflow-y-auto pr-1 no-scrollbar">
+                <div id="modal-categories-list" class="flex-1 overflow-y-auto my-3 space-y-2 pr-1 no-scrollbar">
                     </div>
 
-                <div class="pt-3 border-t border-white/5 space-y-3">
-                    <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Créer une enveloppe</h4>
+                <div class="pt-4 border-t border-white/10 flex-shrink-0 space-y-3 bg-transparent">
+                    <div class="flex justify-between items-center">
+                        <h4 id="form-cat-title" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Créer une enveloppe</h4>
+                        <button id="btn-cancel-edit" onclick="resetCategoryForm()" class="hidden text-[10px] bg-white/10 px-2 py-0.5 rounded text-slate-400 font-bold uppercase hover:text-white">Annuler modif</button>
+                    </div>
                     <div class="space-y-2">
                         <div class="grid grid-cols-2 gap-2">
-                            <input type="text" id="new-cat-name" placeholder="Nom (ex: Salaire, Resto)" class="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
-                            <select id="new-cat-type" class="bg-[#0f0c23] border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                            <input type="text" id="new-cat-name" placeholder="Nom (ex: Salaire, Courses, Netflix)" class="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                            <select id="new-cat-type" class="bg-[#0f0c23] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
                                 <option value="depense">Dépense (-)</option>
                                 <option value="recette">Recette (+)</option>
                             </select>
                         </div>
                         <div class="flex gap-2">
-                            <input type="number" id="new-cat-amount" placeholder="Montant mensuel (€)" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
-                            <button onclick="addCategory()" class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-4 rounded-xl font-bold text-xs active:scale-95 transition-transform flex items-center justify-center whitespace-nowrap">
+                            <input type="number" id="new-cat-amount" placeholder="Montant mensuel (€)" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                            <button id="btn-submit-cat" onclick="addCategory()" class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-5 rounded-xl font-bold text-xs active:scale-95 transition-transform flex items-center justify-center whitespace-nowrap">
                                 <i class="fa-solid fa-plus mr-1"></i> Ajouter
                             </button>
                         </div>
@@ -297,34 +306,31 @@
     <script>
         // State variables
         let currentPeriod = 'mois';
+        let chartFilter = 'tout';
+        let editingCategoryId = null;
         let categories = [];
         let savingsGoals = [];
+        let budgetChart = null;
 
-        // Base pré-remplie intelligente avec Recettes et Dépenses équilibrées
         const defaultCategories = [
-            { id: 1, name: "Salaire net", amount: 2500, icon: "fa-money-bill-wave", type: "recette" },
+            { id: 1, name: "Salaire net", amount: 2500, icon: "fa-wallet", type: "recette" },
             { id: 2, name: "Loyer & Charges", amount: 1100, icon: "fa-house", type: "depense" },
-            { id: 3, name: "Alimentation", amount: 400, icon: "fa-utensils", type: "depense" }
+            { id: 3, name: "Alimentation Courses", amount: 400, icon: "fa-utensils", type: "depense" },
+            { id: 4, name: "Abonnement Netflix", amount: 30, icon: "fa-martini-glass-citrus", type: "depense" }
         ];
 
         const defaultSavingsGoals = [
             { id: 1, name: "Prochaines Vacances", target: 1200, current: 450 }
         ];
 
-        // App Initialization triggered on window load
         window.onload = function() {
             loadFromLocalStorage();
             calculateBudget();
-            renderCategories();
             renderSavingsGoals();
         }
 
-        // State persistence methods
         function saveToLocalStorage() {
-            const data = {
-                categories: categories,
-                savingsGoals: savingsGoals
-            };
+            const data = { categories: categories, savingsGoals: savingsGoals };
             localStorage.setItem('lumina_budget_data', JSON.stringify(data));
         }
 
@@ -336,7 +342,6 @@
                     categories = data.categories || defaultCategories;
                     savingsGoals = data.savingsGoals || defaultSavingsGoals;
                 } catch(e) {
-                    console.error("Erreur lors du parsing des données locales", e);
                     loadDefaults();
                 }
             } else {
@@ -350,7 +355,6 @@
             saveToLocalStorage();
         }
 
-        // Tab Switching Logic
         function switchTab(tabName) {
             const tabBudget = document.getElementById('tab-budget');
             const tabSavings = document.getElementById('tab-savings');
@@ -376,12 +380,33 @@
             }
         }
 
-        // Engine de Calcul Automatique via les Enveloppes
+        // Moteur IA Prédictif local pour choisir l'icône automatiquement
+        function predictIconByKeyword(name, type) {
+            const n = name.toLowerCase();
+            if (type === 'recette') {
+                if (n.includes('salaire') || n.includes('paye') || n.includes('virement') || n.includes('boulot') || n.includes('travail')) return "fa-wallet";
+                if (n.includes('caf') || n.includes('aide') || n.includes('alloc') || n.includes('etat')) return "fa-hand-holding-dollar";
+                if (n.includes('vente') || n.includes('leboncoin') || n.includes('vinted') || n.includes('remboursement')) return "fa-shop";
+                if (n.includes('prime') || n.includes('bonus') || n.includes('cadeau')) return "fa-gem";
+                return "fa-money-bill-wave";
+            } else {
+                if (n.includes('resto') || n.includes('nourriture') || n.includes('course') || n.includes('aliment') || n.includes('manger') || n.includes('supermarche') || n.includes('repas') || n.includes('lidl') || n.includes('carrefour') || n.includes('leclerc') || n.includes('fastfood') || n.includes('macdo')) return "fa-utensils";
+                if (n.includes('loyer') || n.includes('maison') || n.includes('appart') || n.includes('edf') || n.includes('eau') || n.includes('electricite') || n.includes('gaz') || n.includes('charges') || n.includes('assurance')) return "fa-house";
+                if (n.includes('voiture') || n.includes('essence') || n.includes('transport') || n.includes('train') || n.includes('bus') || n.includes('carburant') || n.includes('moto') || n.includes('peage') || n.includes('garage')) return "fa-car";
+                if (n.includes('shopping') || n.includes('habit') || n.includes('vetement') || n.includes('mode') || n.includes('achat') || n.includes('chaussure')) return "fa-bag-shopping";
+                if (n.includes('sport') || n.includes('salle') || n.includes('gym') || n.includes('muscle') || n.includes('abonnement') || n.includes('foot')) return "fa-dumbbell";
+                if (n.includes('cine') || n.includes('film') || n.includes('netflix') || n.includes('sorties') || n.includes('bar') || n.includes('fete') || n.includes('soiree') || n.includes('concert') || n.includes('alcool') || n.includes('biere')) return "fa-martini-glass-citrus";
+                if (n.includes('sante') || n.includes('medecin') || n.includes('pharma') || n.includes('dentiste') || n.includes('mutuelle')) return "fa-heart-pulse";
+                if (n.includes('cadeau') || n.includes('noel') || n.includes('anniversaire')) return "fa-gift";
+                return "fa-tag";
+            }
+        }
+
+        // Engine de Calcul & Synchronisation
         function calculateBudget() {
             let totalRecettes = 0;
             let totalDepenses = 0;
 
-            // Séparation et sommation automatique par type
             categories.forEach(cat => {
                 if (cat.type === 'recette') {
                     totalRecettes += cat.amount;
@@ -390,50 +415,45 @@
                 }
             });
 
-            // Injection des totaux dans le bloc de synthèse
             document.getElementById('display-total-recettes').innerText = formatNumber(totalRecettes) + " €";
             document.getElementById('display-total-depenses').innerText = formatNumber(totalDepenses) + " €";
 
             const baseResteMois = totalRecettes - totalDepenses;
             let finalValue = baseResteMois;
 
-            if (currentPeriod === 'semaine') {
-                finalValue = baseResteMois / 4.333; 
-            } else if (currentPeriod === 'jour') {
-                finalValue = baseResteMois / 30.42; 
-            }
+            if (currentPeriod === 'semaine') finalValue = baseResteMois / 4.333; 
+            else if (currentPeriod === 'jour') finalValue = baseResteMois / 30.42; 
 
-            // Mise à jour du compteur principal
             const displayEl = document.getElementById('display-amount');
+            const currencyEl = document.getElementById('display-currency');
             displayEl.innerText = formatNumber(finalValue);
 
-            // Gestion de l'alerte visuelle si budget négatif
             const displayCard = document.getElementById('main-display-card');
             const warningEl = document.getElementById('budget-warning');
             
+            // Correction : La devise (€) change de couleur en harmonie parfaite avec le montant
             if (baseResteMois < 0) {
                 displayCard.className = "glass-card rounded-3xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden transition-all duration-300 glow-pink";
                 displayEl.className = "text-5xl font-extrabold tracking-tight text-rose-400 text-glow-pink transition-all duration-300";
+                currencyEl.className = "text-2xl font-bold text-rose-400 text-glow-pink ml-1 transition-all duration-300";
                 warningEl.classList.remove('hidden');
             } else {
                 displayCard.className = "glass-card rounded-3xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden transition-all duration-300 glow-emerald";
                 displayEl.className = "text-5xl font-extrabold tracking-tight text-emerald-400 text-glow-emerald transition-all duration-300";
+                currencyEl.className = "text-2xl font-bold text-emerald-400 text-glow-emerald ml-1 transition-all duration-300";
                 warningEl.classList.add('hidden');
             }
 
             saveToLocalStorage();
             renderCategoriesBars(totalRecettes);
+            updateDynamicChart();
         }
 
         function setPeriod(period) {
             currentPeriod = period;
             ['jour', 'semaine', 'mois'].forEach(p => {
                 const btn = document.getElementById(`btn-period-${p}`);
-                if (p === period) {
-                    btn.className = "flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-white/10 text-white shadow-sm";
-                } else {
-                    btn.className = "flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 text-slate-400";
-                }
+                btn.className = p === period ? "flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-white/10 text-white shadow-sm" : "flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 text-slate-400";
             });
 
             const descText = document.getElementById('display-period-text');
@@ -444,7 +464,93 @@
             calculateBudget();
         }
 
-        // Rendu visuel des enveloppes
+        // Gestion et Rendu du Graphique Circulaire (Donut)
+        function setChartFilter(filter) {
+            chartFilter = filter;
+            ['tout', 'recette', 'depense'].forEach(f => {
+                const btn = document.getElementById(`btn-filter-${f}`);
+                btn.className = f === filter ? "px-2.5 py-1 rounded bg-white/10 text-white transition-all" : "px-2.5 py-1 rounded text-slate-400 transition-all";
+            });
+            updateDynamicChart();
+        }
+
+        function updateDynamicChart() {
+            const ctx = document.getElementById('budgetChart').getContext('2d');
+            
+            let filtered = [];
+            if (chartFilter === 'tout') filtered = categories;
+            else filtered = categories.filter(c => c.type === chartFilter);
+
+            if (budgetChart) budgetChart.destroy();
+
+            if (filtered.length === 0) {
+                budgetChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Vide'],
+                        datasets: [{ data: [1], backgroundColor: ['rgba(255,255,255,0.04)'], borderColor: ['rgba(255,255,255,0.08)'] }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, cutout: '72%' }
+                });
+                return;
+            }
+
+            const labels = filtered.map(c => c.name);
+            const datasetValues = filtered.map(c => c.amount);
+            
+            const backgroundColors = filtered.map((c, i) => {
+                if (c.type === 'recette') return 'rgba(6, 182, 212, 0.6)'; // Cyan
+                const palette = [
+                    'rgba(244, 63, 94, 0.6)',  // Rose
+                    'rgba(168, 85, 247, 0.6)', // Violet
+                    'rgba(249, 115, 22, 0.6)', // Orange
+                    'rgba(234, 179, 8, 0.6)',  // Jaune
+                    'rgba(236, 72, 153, 0.6)'  // Rose clair
+                ];
+                return palette[i % palette.length];
+            });
+
+            const borderColors = filtered.map((c, i) => {
+                if (c.type === 'recette') return '#06b6d4';
+                const palette = ['#f43f5e', '#a855f7', '#f97316', '#eab308', '#ec4899'];
+                return palette[i % palette.length];
+            });
+
+            budgetChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: datasetValues,
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColors,
+                        borderWidth: 1.5,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 12, 35, 0.95)',
+                            titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: 'bold' },
+                            bodyFont: { family: 'Plus Jakarta Sans', size: 12 },
+                            borderColor: 'rgba(255,255,255,0.1)',
+                            borderWidth: 1,
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) { return ` ${context.label}: ${formatNumber(context.raw)} €`; }
+                            }
+                        }
+                    },
+                    cutout: '72%'
+                }
+            });
+        }
+
+        // Affichage des enveloppes sur l'écran d'accueil
         function renderCategoriesBars(totalRecettes) {
             const container = document.getElementById('categories-container');
             container.innerHTML = '';
@@ -453,17 +559,14 @@
                 let percentage = 0;
                 let barColorClass = "from-rose-500 to-orange-400";
                 let iconColorClass = "text-rose-400";
-                let badgeType = "Dépense";
                 let sign = "- ";
 
                 if (cat.type === 'recette') {
-                    percentage = 100; // Une recette remplit sa jauge par défaut
+                    percentage = 100; 
                     barColorClass = "from-cyan-500 to-emerald-400";
                     iconColorClass = "text-cyan-400";
-                    badgeType = "Recette";
                     sign = "+ ";
                 } else {
-                    // Calcul de la jauge proportionnellement aux revenus (recettes) globaux
                     percentage = totalRecettes > 0 ? Math.min((cat.amount / totalRecettes) * 100, 100) : 100;
                 }
                 
@@ -477,10 +580,10 @@
                             </span>
                             <div>
                                 <span class="block">${cat.name}</span>
-                                <span class="text-[9px] text-slate-500 font-normal uppercase tracking-wider">${badgeType}</span>
+                                <span class="text-[9px] text-slate-500 font-normal uppercase tracking-wider">${cat.type === 'recette' ? 'Recette':'Dépense'}</span>
                             </div>
                         </div>
-                        <div class="font-bold text-slate-100 ${cat.type === 'recette' ? 'text-cyan-400':'text-slate-100'}">${sign}${formatNumber(cat.amount)} €</div>
+                        <div class="font-bold ${cat.type === 'recette' ? 'text-cyan-400':'text-slate-100'}">${sign}${formatNumber(cat.amount)} €</div>
                     </div>
                     <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden border border-white/5">
                         <div class="bg-gradient-to-r ${barColorClass} h-full rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
@@ -490,7 +593,8 @@
             });
         }
 
-        function renderCategories() {
+        // Rendu complet de la liste à l'intérieur de la grande modale Plein Écran
+        function renderCategoriesModalList() {
             const mContainer = document.getElementById('modal-categories-list');
             mContainer.innerHTML = '';
             
@@ -498,18 +602,29 @@
                 const isRecette = cat.type === 'recette';
                 const typeLabel = isRecette ? 'Recette' : 'Dépense';
                 const typeColor = isRecette ? 'text-cyan-400 bg-cyan-500/10' : 'text-rose-400 bg-rose-500/10';
+                const isEditing = editingCategoryId === cat.id;
 
                 const div = document.createElement('div');
-                div.className = "flex justify-between items-center p-2.5 bg-white/5 rounded-xl border border-white/5 text-xs";
+                div.className = `flex justify-between items-center p-3 rounded-xl border transition-all duration-200 ${isEditing ? 'bg-cyan-500/10 border-cyan-500/40 glow-cyan':'bg-white/5 border-white/5'}`;
                 div.innerHTML = `
-                    <div class="flex flex-col">
-                        <span class="font-bold text-slate-200">${cat.name}</span>
-                        <span class="text-[10px] text-slate-400 mt-0.5">${formatNumber(cat.amount)} €</span>
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-xs text-slate-300">
+                            <i class="fa-solid ${cat.icon}"></i>
+                        </span>
+                        <div class="flex flex-col">
+                            <span class="font-bold text-slate-200 text-xs">${cat.name}</span>
+                            <span class="text-[11px] text-slate-400 mt-0.5">${formatNumber(cat.amount)} €</span>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span class="px-2 py-0.5 rounded text-[9px] font-bold ${typeColor}">${typeLabel}</span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${typeColor}">${typeLabel}</span>
+                        
+                        <button onclick="editCategory(${cat.id})" class="text-cyan-400 hover:text-cyan-300 w-7 h-7 bg-cyan-500/10 border border-cyan-500/20 rounded-lg flex items-center justify-center active:scale-90 transition-transform">
+                            <i class="fa-solid fa-pen text-[10px]"></i>
+                        </button>
+
                         <button onclick="deleteCategory(${cat.id})" class="text-rose-400 hover:text-rose-300 w-7 h-7 bg-rose-500/10 border border-rose-500/20 rounded-lg flex items-center justify-center active:scale-90 transition-transform">
-                            <i class="fa-solid fa-trash-can text-[11px]"></i>
+                            <i class="fa-solid fa-trash-can text-[10px]"></i>
                         </button>
                     </div>
                 `;
@@ -517,10 +632,45 @@
             });
         }
 
-        // Actionneurs CRUD Enveloppes
+        // Actions de configuration des Enveloppes
         function openCategoryModal() {
-            renderCategories();
+            renderCategoriesModalList();
             toggleModal('category-modal');
+        }
+
+        function closeCategoryModal() {
+            resetCategoryForm();
+            toggleModal('category-modal');
+        }
+
+        // Charger une enveloppe dans le formulaire pour la modifier
+        function editCategory(id) {
+            const cat = categories.find(c => c.id === id);
+            if (!cat) return;
+
+            editingCategoryId = id;
+            document.getElementById('new-cat-name').value = cat.name;
+            document.getElementById('new-cat-amount').value = cat.amount;
+            document.getElementById('new-cat-type').value = cat.type;
+
+            // Mutation visuelle du formulaire vers l'état d'édition
+            document.getElementById('form-cat-title').innerText = "Modifier l'enveloppe";
+            document.getElementById('btn-submit-cat').innerHTML = '<i class="fa-solid fa-check mr-1"></i> Sauver';
+            document.getElementById('btn-submit-cat').className = "bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 px-5 rounded-xl font-bold text-xs active:scale-95 transition-transform flex items-center justify-center whitespace-nowrap";
+            document.getElementById('btn-cancel-edit').classList.remove('hidden');
+
+            renderCategoriesModalList();
+        }
+
+        function resetCategoryForm() {
+            editingCategoryId = null;
+            document.getElementById('new-cat-name').value = '';
+            document.getElementById('new-cat-amount').value = '';
+            document.getElementById('form-cat-title').innerText = "Créer une enveloppe";
+            document.getElementById('btn-submit-cat').innerHTML = '<i class="fa-solid fa-plus mr-1"></i> Ajouter';
+            document.getElementById('btn-submit-cat').className = "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-5 rounded-xl font-bold text-xs active:scale-95 transition-transform flex items-center justify-center whitespace-nowrap";
+            document.getElementById('btn-cancel-edit').classList.add('hidden');
+            renderCategoriesModalList();
         }
 
         function addCategory() {
@@ -533,37 +683,45 @@
             const type = typeSelect.value;
 
             if (name && amount > 0) {
-                let chosenIcon = "fa-tag";
-                if (type === 'recette') {
-                    chosenIcon = "fa-money-bill-wave";
+                // Utilisation de notre IA prédictive textuelle locale
+                const predictedIcon = predictIconByKeyword(name, type);
+
+                if (editingCategoryId !== null) {
+                    // Mode modification : On met à jour l'enveloppe ciblée
+                    const catIndex = categories.findIndex(c => c.id === editingCategoryId);
+                    if (catIndex !== -1) {
+                        categories[catIndex].name = name;
+                        categories[catIndex].amount = amount;
+                        categories[catIndex].type = type;
+                        categories[catIndex].icon = predictedIcon; // Re-prédiction dynamique
+                    }
+                    resetCategoryForm();
                 } else {
-                    const iconsPool = ["fa-utensils", "fa-martini-glass-citrus", "fa-car", "fa-bag-shopping", "fa-house", "fa-film", "fa-dumbbell"];
-                    chosenIcon = iconsPool[Math.floor(Math.random() * iconsPool.length)];
+                    // Mode création classique
+                    categories.push({
+                        id: Date.now(),
+                        name: name,
+                        amount: amount,
+                        icon: predictedIcon,
+                        type: type
+                    });
+                    nameInput.value = '';
+                    amountInput.value = '';
                 }
                 
-                categories.push({
-                    id: Date.now(),
-                    name: name,
-                    amount: amount,
-                    icon: chosenIcon,
-                    type: type
-                });
-
-                nameInput.value = '';
-                amountInput.value = '';
-                
                 calculateBudget();
-                renderCategories();
+                renderCategoriesModalList();
             }
         }
 
         function deleteCategory(id) {
+            if (editingCategoryId === id) resetCategoryForm();
             categories = categories.filter(c => c.id !== id);
             calculateBudget();
-            renderCategories();
+            renderCategoriesModalList();
         }
 
-        // Onglet Épargne (Rendu avec cases et boutons XL)
+        // Onglet 2: Rendu Épargne (Boutons tactiles XL)
         function renderSavingsGoals() {
             const container = document.getElementById('savings-container');
             container.innerHTML = '';
@@ -600,7 +758,7 @@
                                 </button>
                             </div>
                             <p class="text-[12px] text-slate-400 mt-1 font-medium">
-                                <span class="text-cyan-400 font-bold">${formatNumber(goal.current)} €</span> épargnés sur ${formatNumber(goal.target)} €
+                                <span class="text-cyan-400 font-bold">${formatNumber(goal.current)} €</span> sur ${formatNumber(goal.target)} €
                             </p>
                         </div>
                     </div>
@@ -616,9 +774,7 @@
             });
         }
 
-        function openSavingsModal() {
-            toggleModal('savings-modal');
-        }
+        function openSavingsModal() { toggleModal('savings-modal'); }
 
         function addSavingsGoal() {
             const nameInput = document.getElementById('goal-name');
@@ -630,17 +786,8 @@
             const current = parseFloat(currentInput.value) || 0;
 
             if (name && target > 0) {
-                savingsGoals.push({
-                    id: Date.now(),
-                    name: name,
-                    target: target,
-                    current: current
-                });
-
-                nameInput.value = '';
-                targetInput.value = '';
-                currentInput.value = '0';
-
+                savingsGoals.push({ id: Date.now(), name: name, target: target, current: current });
+                nameInput.value = ''; targetInput.value = ''; currentInput.value = '0';
                 toggleModal('savings-modal');
                 renderSavingsGoals();
                 saveToLocalStorage();
@@ -650,7 +797,6 @@
         function addMoneyToGoal(id) {
             const input = document.getElementById(`input-add-money-${id}`);
             const amount = parseFloat(input.value) || 0;
-
             if (amount !== 0) {
                 const goal = savingsGoals.find(g => g.id === id);
                 if (goal) {
@@ -670,63 +816,42 @@
             }
         }
 
-        // Toggler global des fenêtres modales
         function toggleModal(modalId) {
             const el = document.getElementById(modalId);
-            if (el.classList.contains('hidden')) {
-                el.classList.remove('hidden');
-            } else {
-                el.classList.add('hidden');
-            }
+            if (el.classList.contains('hidden')) el.classList.remove('hidden');
+            else el.classList.add('hidden');
         }
 
-        // Import & Export JSON Sauvegardes
+        // Sauvegardes Externes (JSON)
         function exportData() {
             const dataStr = localStorage.getItem('lumina_budget_data');
-            if (!dataStr) return alert("Aucune donnée à exporter pour le moment.");
-
+            if (!dataStr) return alert("Aucune donnée à exporter.");
             const blob = new Blob([dataStr], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            const now = new Date();
-            const dateStr = now.toISOString().split('T')[0];
-            
             a.href = url;
-            a.download = `lumina_budget_backup_${dateStr}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            a.download = `lumina_backup_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
         }
 
         function importData(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const parsed = JSON.parse(e.target.result);
                     if (parsed.categories || parsed.savingsGoals) {
                         localStorage.setItem('lumina_budget_data', JSON.stringify(parsed));
-                        alert("Sauvegarde importée avec succès !");
                         location.reload(); 
-                    } else {
-                        alert("Fichier invalide ou corrompu.");
-                    }
-                } catch (err) {
-                    alert("Erreur lors de la lecture du fichier.");
-                }
+                    } else alert("Fichier invalide.");
+                } catch (err) { alert("Erreur de lecture."); }
             };
             reader.readAsText(file);
         }
 
-        // Utilitaires de formatage numérique
         function formatNumber(num) {
-            return Number(num).toLocaleString('fr-FR', {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            });
+            return Number(num).toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
         }
     </script>
 </body>
