@@ -22,6 +22,11 @@
             padding: 0;
             overflow-x: hidden;
         }
+
+        .app-shell {
+            padding-top: calc(env(safe-area-inset-top, 0px) + 1rem);
+            padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 7rem);
+        }
         
         /* Glassmorphic Styles */
         .glass-card {
@@ -99,7 +104,7 @@
 </head>
 <body class="text-slate-100 antialiased selection:bg-cyan-500/30">
 
-    <div class="max-w-md mx-auto min-h-screen flex flex-col relative pb-28 pt-4 px-4 bg-[#060410] overflow-y-auto no-scrollbar">
+    <div class="app-shell max-w-md mx-auto min-h-screen flex flex-col relative px-4 bg-[#060410] overflow-y-auto no-scrollbar">
         
         <header class="flex justify-between items-center mb-6 pt-2 z-10">
             <div>
