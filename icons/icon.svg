@@ -1,0 +1,44 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="30%" cy="20%" r="95%">
+      <stop offset="0%" stop-color="#1a1338"/>
+      <stop offset="55%" stop-color="#0a0818"/>
+      <stop offset="100%" stop-color="#060410"/>
+    </radialGradient>
+    <linearGradient id="arrowGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+    <linearGradient id="coinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softBlur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="46"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <circle cx="120" cy="120" r="120" fill="#10b981" opacity="0.24" filter="url(#softBlur)"/>
+  <circle cx="404" cy="404" r="140" fill="#06b6d4" opacity="0.20" filter="url(#softBlur)"/>
+
+  <!-- Ascending balance arrow: the "reste à vivre" going up -->
+  <g filter="url(#glow)">
+    <path d="M204 378 L288 296 L336 340 L406 176" fill="none" stroke="url(#arrowGrad)" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M336 170 L412 168 L414 244" fill="none" stroke="url(#arrowGrad)" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Euro coin badge -->
+  <g filter="url(#glow)">
+    <circle cx="106" cy="392" r="56" fill="#0a0818" stroke="url(#coinGrad)" stroke-width="12"/>
+  </g>
+  <text x="106" y="413" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="58" font-weight="700" fill="#eafff5">&#8364;</text>
+</svg>
