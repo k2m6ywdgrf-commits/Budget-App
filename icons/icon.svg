@@ -5,18 +5,21 @@
       <stop offset="55%" stop-color="#0a0818"/>
       <stop offset="100%" stop-color="#060410"/>
     </radialGradient>
-    <linearGradient id="arrowGrad" x1="173" y1="377" x2="372" y2="178" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#06b6d4"/>
-      <stop offset="100%" stop-color="#34d399"/>
-    </linearGradient>
-    <linearGradient id="coinGrad" x1="52" y1="342" x2="168" y2="458" gradientUnits="userSpaceOnUse">
+    <linearGradient id="barGrad" x1="144" y1="0" x2="368" y2="0" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="55%" stop-color="#14b8a6"/>
       <stop offset="100%" stop-color="#06b6d4"/>
     </linearGradient>
-    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
-      <feGaussianBlur stdDeviation="12" result="blur"/>
+    <filter id="cardShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="18" result="blur"/>
       <feMerge>
         <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="barGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
         <feMergeNode in="blur"/>
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
@@ -28,14 +31,19 @@
 
   <rect width="512" height="512" fill="url(#bg)"/>
 
-  <circle cx="120" cy="120" r="120" fill="#10b981" opacity="0.20" filter="url(#softBlur)"/>
-  <circle cx="404" cy="404" r="140" fill="#06b6d4" opacity="0.16" filter="url(#softBlur)"/>
+  <circle cx="110" cy="110" r="120" fill="#10b981" opacity="0.18" filter="url(#softBlur)"/>
+  <circle cx="410" cy="410" r="140" fill="#06b6d4" opacity="0.16" filter="url(#softBlur)"/>
 
-  <g filter="url(#glow)">
-    <path d="M207.0,377.0 L318.3,265.7 L342.3,289.7 L372.0,178.0 L260.3,207.7 L284.3,231.7 L173.0,343.0 Z" fill="url(#arrowGrad)"/>
+  <!-- Glass card, echoing the app's own .glass-card component -->
+  <rect x="96" y="92" width="320" height="328" rx="46" fill="#ffffff" fill-opacity="0.05" stroke="#ffffff" stroke-opacity="0.14" stroke-width="3" filter="url(#cardShadow)"/>
 
-    <circle cx="110" cy="400" r="58" fill="url(#coinGrad)"/>
-    <circle cx="110" cy="400" r="46" fill="#0a0818"/>
-    <text x="110" y="422" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="56" font-weight="700" fill="#eafff5">&#8364;</text>
+  <!-- Baseline -->
+  <line x1="136" y1="374" x2="376" y2="374" stroke="#ffffff" stroke-opacity="0.14" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Bar chart: varied heights, not a signal-bar staircase -->
+  <g filter="url(#barGlow)">
+    <rect x="144.0" y="252.0" width="56" height="122" rx="16" fill="url(#barGrad)"/>
+    <rect x="228.0" y="172.0" width="56" height="202" rx="16" fill="url(#barGrad)"/>
+    <rect x="312.0" y="218.0" width="56" height="156" rx="16" fill="url(#barGrad)"/>
   </g>
 </svg>
