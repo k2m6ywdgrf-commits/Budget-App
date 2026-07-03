@@ -5,17 +5,18 @@
       <stop offset="55%" stop-color="#0a0818"/>
       <stop offset="100%" stop-color="#060410"/>
     </radialGradient>
-    <linearGradient id="arrowGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+    <linearGradient id="arrowGrad" x1="173" y1="377" x2="372" y2="178" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#06b6d4"/>
       <stop offset="100%" stop-color="#34d399"/>
     </linearGradient>
-    <linearGradient id="coinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="coinGrad" x1="52" y1="342" x2="168" y2="458" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#10b981"/>
       <stop offset="100%" stop-color="#06b6d4"/>
     </linearGradient>
-    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
-      <feGaussianBlur stdDeviation="16" result="blur"/>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
       <feMerge>
+        <feMergeNode in="blur"/>
         <feMergeNode in="blur"/>
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
@@ -27,18 +28,14 @@
 
   <rect width="512" height="512" fill="url(#bg)"/>
 
-  <circle cx="120" cy="120" r="120" fill="#10b981" opacity="0.24" filter="url(#softBlur)"/>
-  <circle cx="404" cy="404" r="140" fill="#06b6d4" opacity="0.20" filter="url(#softBlur)"/>
+  <circle cx="120" cy="120" r="120" fill="#10b981" opacity="0.20" filter="url(#softBlur)"/>
+  <circle cx="404" cy="404" r="140" fill="#06b6d4" opacity="0.16" filter="url(#softBlur)"/>
 
-  <!-- Ascending balance arrow: the "reste à vivre" going up -->
   <g filter="url(#glow)">
-    <path d="M204 378 L288 296 L336 340 L406 176" fill="none" stroke="url(#arrowGrad)" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M336 170 L412 168 L414 244" fill="none" stroke="url(#arrowGrad)" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
+    <path d="M207.0,377.0 L318.3,265.7 L342.3,289.7 L372.0,178.0 L260.3,207.7 L284.3,231.7 L173.0,343.0 Z" fill="url(#arrowGrad)"/>
 
-  <!-- Euro coin badge -->
-  <g filter="url(#glow)">
-    <circle cx="106" cy="392" r="56" fill="#0a0818" stroke="url(#coinGrad)" stroke-width="12"/>
+    <circle cx="110" cy="400" r="58" fill="url(#coinGrad)"/>
+    <circle cx="110" cy="400" r="46" fill="#0a0818"/>
+    <text x="110" y="422" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="56" font-weight="700" fill="#eafff5">&#8364;</text>
   </g>
-  <text x="106" y="413" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="58" font-weight="700" fill="#eafff5">&#8364;</text>
 </svg>
