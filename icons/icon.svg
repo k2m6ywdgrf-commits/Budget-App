@@ -1,0 +1,49 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="30%" cy="20%" r="95%">
+      <stop offset="0%" stop-color="#1a1338"/>
+      <stop offset="55%" stop-color="#0a0818"/>
+      <stop offset="100%" stop-color="#060410"/>
+    </radialGradient>
+    <linearGradient id="barGrad" x1="144" y1="0" x2="368" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="55%" stop-color="#14b8a6"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="18" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="barGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softBlur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="46"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <circle cx="110" cy="110" r="120" fill="#10b981" opacity="0.18" filter="url(#softBlur)"/>
+  <circle cx="410" cy="410" r="140" fill="#06b6d4" opacity="0.16" filter="url(#softBlur)"/>
+
+  <!-- Glass card, echoing the app's own .glass-card component -->
+  <rect x="96" y="92" width="320" height="328" rx="46" fill="#ffffff" fill-opacity="0.05" stroke="#ffffff" stroke-opacity="0.14" stroke-width="3" filter="url(#cardShadow)"/>
+
+  <!-- Baseline -->
+  <line x1="136" y1="374" x2="376" y2="374" stroke="#ffffff" stroke-opacity="0.14" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Bar chart: varied heights, not a signal-bar staircase -->
+  <g filter="url(#barGlow)">
+    <rect x="144.0" y="252.0" width="56" height="122" rx="16" fill="url(#barGrad)"/>
+    <rect x="228.0" y="172.0" width="56" height="202" rx="16" fill="url(#barGrad)"/>
+    <rect x="312.0" y="218.0" width="56" height="156" rx="16" fill="url(#barGrad)"/>
+  </g>
+</svg>
