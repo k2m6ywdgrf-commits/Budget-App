@@ -253,6 +253,25 @@
                     </button>
                 </div>
 
+                <!-- Synchronisation cloud (Firebase) -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-cloud text-cyan-400"></i> Sauvegarde cloud
+                        </h4>
+                        <span id="cloud-status" class="text-[11px] font-semibold text-slate-500 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle text-[6px]"></i> <span id="cloud-status-text">Hors ligne</span>
+                        </span>
+                    </div>
+                    <p id="cloud-user" class="hidden text-[11px] text-slate-400 text-center w-full"></p>
+                    <button id="cloud-auth-btn" onclick="cloudAuthAction()" class="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-slate-200 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 active:scale-98 transition-transform">
+                        <i class="fa-brands fa-google text-cyan-400"></i> <span id="cloud-auth-label">Se connecter avec Google</span>
+                    </button>
+                    <p class="text-[11px] text-slate-500 leading-relaxed text-center w-full">Connectez-vous pour synchroniser vos budgets entre vos appareils. La 1<sup>re</sup> connexion fusionne, sans rien perdre.</p>
+                </div>
+
+                <div class="h-px bg-white/10"></div>
+
                 <div class="space-y-3 text-center">
                     <p class="text-xs text-slate-400 leading-relaxed text-center w-full">Vos données restent stockées localement sur votre iPhone (PWA). La sauvegarde/import inclut tous vos budgets (Perso, Couple, etc.).</p>
                     <button onclick="exportData()" class="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-slate-200 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 active:scale-98 transition-transform">
@@ -451,9 +470,105 @@
             return 50;
         }
 
-        function saveToLocalStorage() {
+        // Écriture locale pure (jamais de push cloud ici) — utilisée aussi
+        // quand on applique des données venues du cloud, pour éviter les boucles.
+        function writeLocalOnly() {
             const data = { profiles: profiles, currentProfileId: currentProfileId };
             localStorage.setItem('lumina_budget_data', JSON.stringify(data));
+        }
+
+        function saveToLocalStorage() {
+            writeLocalOnly();
+            // Point de passage unique : on greffe le cloud par-dessus.
+            // No-op si l'utilisateur est déconnecté.
+            if (window.Cloud && window.Cloud.push) {
+                window.Cloud.push({ profiles: profiles, currentProfileId: currentProfileId });
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // Pont app ↔ module Firebase (voir le <script type="module"> en bas)
+        // ─────────────────────────────────────────────────────────────
+        window.__getLocalData = function () {
+            return { profiles: profiles, currentProfileId: currentProfileId };
+        };
+
+        // Applique un état venu du cloud SANS repousser (écriture locale seule).
+        window.__applyCloudData = function (d) {
+            if (!d || !Array.isArray(d.profiles) || d.profiles.length === 0) return;
+            profiles = d.profiles;
+            currentProfileId = d.currentProfileId;
+            if (!profiles.find(p => p.id === currentProfileId)) {
+                currentProfileId = profiles[0].id;
+            }
+            writeLocalOnly();
+            rerenderAll();
+        };
+
+        // Fusion NON destructive local + cloud (union par id), pour la 1re connexion.
+        window.__mergeData = function (cloud) {
+            const local = window.__getLocalData();
+            const byId = new Map();
+            (Array.isArray(cloud && cloud.profiles) ? cloud.profiles : []).forEach(p => byId.set(p.id, p));
+            (Array.isArray(local.profiles) ? local.profiles : []).forEach(lp => {
+                const existing = byId.get(lp.id);
+                if (!existing) { byId.set(lp.id, lp); return; }
+                existing.categories = unionById(existing.categories, lp.categories);
+                existing.savingsGoals = unionById(existing.savingsGoals, lp.savingsGoals);
+                if (!existing.sharing && lp.sharing) existing.sharing = lp.sharing;
+            });
+            const mergedProfiles = Array.from(byId.values());
+            let cur = (cloud && cloud.currentProfileId) || local.currentProfileId;
+            if (!mergedProfiles.find(p => p.id === cur)) cur = mergedProfiles[0] ? mergedProfiles[0].id : null;
+            return { profiles: mergedProfiles, currentProfileId: cur };
+        };
+
+        function unionById(a, b) {
+            const arrA = Array.isArray(a) ? a : [];
+            const arrB = Array.isArray(b) ? b : [];
+            const map = new Map();
+            arrA.forEach(x => map.set(x.id, x));
+            arrB.forEach(x => { if (!map.has(x.id)) map.set(x.id, x); });
+            return Array.from(map.values());
+        }
+
+        // Redessine toute l'UI après une mise à jour cloud.
+        function rerenderAll() {
+            renderProfileSwitcher();
+            calculateBudget();
+            renderSavingsGoals();
+            if (!document.getElementById('category-modal').classList.contains('hidden')) renderCategoriesModalList();
+            if (!document.getElementById('profile-modal').classList.contains('hidden')) renderProfilesModalList();
+        }
+
+        // Indicateur d'état de synchro dans les réglages.
+        window.__onAuthChange = function (user, status) {
+            const label = document.getElementById('cloud-auth-label');
+            const userEl = document.getElementById('cloud-user');
+            const statusWrap = document.getElementById('cloud-status');
+            const statusText = document.getElementById('cloud-status-text');
+            if (label) label.innerText = user ? 'Se déconnecter' : 'Se connecter avec Google';
+            if (userEl) {
+                if (user) { userEl.innerText = user.email || 'Connecté'; userEl.classList.remove('hidden'); }
+                else userEl.classList.add('hidden');
+            }
+            if (!statusWrap || !statusText) return;
+            const map = {
+                'synced':    ['Synchronisé', 'text-emerald-400'],
+                'saving':    ['Enregistrement…', 'text-cyan-400'],
+                'error':     ['Erreur', 'text-rose-400'],
+                'offline':   ['Hors ligne', 'text-slate-500'],
+                'connected': ['Connecté', 'text-emerald-400']
+            };
+            const [txt, cls] = map[status] || map['offline'];
+            statusWrap.className = 'text-[11px] font-semibold flex items-center gap-1.5 ' + cls;
+            statusText.innerText = txt;
+        };
+
+        function cloudAuthAction() {
+            if (!window.Cloud) return;
+            if (window.Cloud.isSignedIn && window.Cloud.isSignedIn()) window.Cloud.signOut();
+            else window.Cloud.signIn();
         }
 
         function loadFromLocalStorage() {
@@ -1250,7 +1365,12 @@
                     const parsed = JSON.parse(e.target.result);
                     if (parsed.profiles || parsed.categories || parsed.savingsGoals) {
                         localStorage.setItem('lumina_budget_data', JSON.stringify(parsed));
-                        location.reload();
+                        // Import = remplacement volontaire : on écrase aussi le cloud
+                        // pour qu'il ne réapparaisse pas via la fusion au rechargement.
+                        if (window.Cloud && window.Cloud.pushNow && parsed.profiles) {
+                            window.Cloud.pushNow(parsed);
+                        }
+                        setTimeout(() => location.reload(), 150);
                     } else alert("Fichier invalide.");
                 } catch (err) { alert("Erreur de lecture."); }
             };
@@ -1259,6 +1379,141 @@
 
         function formatNumber(num) {
             return Number(num).toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+    </script>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Sauvegarde cloud Firebase (connexion Google + Firestore)
+         Pattern « offline-first » : l'app démarre toujours en local,
+         le cloud se greffe par-dessus via window.Cloud / window.__*.
+         ═══════════════════════════════════════════════════════════════ -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+        import {
+            getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
+            getRedirectResult, onAuthStateChanged, signOut
+        } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import {
+            initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+            doc, onSnapshot, setDoc, deleteDoc, serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+        // ┌─────────────────────────────────────────────────────────────┐
+        // │  À REMPLACER par la config de VOTRE app Web Firebase.         │
+        // │  (Console Firebase → Paramètres du projet → Vos applis Web)   │
+        // │  Ce n'est PAS un secret : l'apiKey est un identifiant public. │
+        // │  La sécurité repose sur les règles Firestore + l'auth.        │
+        // └─────────────────────────────────────────────────────────────┘
+        const firebaseConfig = {
+            apiKey: "VOTRE_API_KEY",
+            authDomain: "VOTRE_PROJET.firebaseapp.com",
+            projectId: "VOTRE_PROJET",
+            storageBucket: "VOTRE_PROJET.firebasestorage.app",
+            messagingSenderId: "VOTRE_SENDER_ID",
+            appId: "VOTRE_APP_ID"
+        };
+
+        // Tant que la config n'est pas renseignée, on n'initialise rien :
+        // l'app reste 100 % fonctionnelle en local.
+        if (firebaseConfig.apiKey === "VOTRE_API_KEY") {
+            console.info("[Cloud] Firebase non configuré — mode local uniquement. Renseignez firebaseConfig pour activer la synchro.");
+        } else {
+            const app  = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const provider = new GoogleAuthProvider();
+            // Cache persistant = usage hors-ligne conservé, multi-onglets.
+            const db = initializeFirestore(app, {
+                localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+            });
+
+            let currentUser = null;
+            let unsubscribeSnap = null;
+            let pushTimer = null;
+
+            const notify = (status) => {
+                if (window.__onAuthChange) window.__onAuthChange(currentUser, status);
+            };
+
+            function pushNow(data) {
+                if (!currentUser) return;
+                clearTimeout(pushTimer);
+                notify('saving');
+                return setDoc(doc(db, 'users', currentUser.uid), {
+                    payloadJSON: JSON.stringify(data),
+                    updatedAt: serverTimestamp()
+                }).then(() => notify('synced'))
+                  .catch((e) => { console.error('[Cloud] push', e); notify('error'); });
+            }
+
+            function push(data) {
+                if (!currentUser) return;
+                clearTimeout(pushTimer);
+                notify('saving');
+                pushTimer = setTimeout(() => pushNow(data), 600);
+            }
+
+            // API exposée à l'app classique.
+            window.Cloud = {
+                isSignedIn: () => !!currentUser,
+                push,
+                pushNow,
+                signIn: async () => {
+                    try {
+                        await signInWithPopup(auth, provider);
+                    } catch (e) {
+                        // Repli mobile si le popup est bloqué.
+                        if (e && (e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request' || e.code === 'auth/operation-not-supported-in-this-environment')) {
+                            await signInWithRedirect(auth, provider);
+                        } else if (e && e.code !== 'auth/popup-closed-by-user') {
+                            console.error('[Cloud] signIn', e);
+                        }
+                    }
+                },
+                signOut: async () => { try { await signOut(auth); } catch (e) { console.error('[Cloud] signOut', e); } },
+                deleteRemote: async () => {
+                    if (!currentUser) return;
+                    try { await deleteDoc(doc(db, 'users', currentUser.uid)); } catch (e) { console.error('[Cloud] delete', e); }
+                }
+            };
+
+            // Récupère un éventuel retour de redirection (mobile).
+            getRedirectResult(auth).catch(() => {});
+
+            onAuthStateChanged(auth, (user) => {
+                if (unsubscribeSnap) { unsubscribeSnap(); unsubscribeSnap = null; }
+                currentUser = user;
+                if (!user) { notify('offline'); return; }
+                notify('connected');
+
+                let first = true;
+                unsubscribeSnap = onSnapshot(doc(db, 'users', user.uid), (snap) => {
+                    // Ignore l'écho de nos propres écritures (anti-boucle).
+                    if (snap.metadata.hasPendingWrites) return;
+
+                    if (!snap.exists()) {
+                        // Cloud vide → migration montante des données locales.
+                        if (first) { first = false; pushNow(window.__getLocalData()); }
+                        return;
+                    }
+
+                    let cloud;
+                    try { cloud = JSON.parse(snap.data().payloadJSON); }
+                    catch (e) { console.error('[Cloud] parse', e); return; }
+
+                    if (first) {
+                        // 1re connexion : fusion non destructive local + cloud.
+                        first = false;
+                        const merged = window.__mergeData(cloud);
+                        window.__applyCloudData(merged);
+                        if (JSON.stringify(merged) !== JSON.stringify(cloud)) pushNow(merged);
+                        notify('synced');
+                        return;
+                    }
+                    // Mise à jour venue d'un autre appareil.
+                    window.__applyCloudData(cloud);
+                    notify('synced');
+                }, (err) => { console.error('[Cloud] snapshot', err); notify('error'); });
+            });
         }
     </script>
 </body>
