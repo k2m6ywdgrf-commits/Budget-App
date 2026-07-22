@@ -1565,7 +1565,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
         import {
             getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
-            getRedirectResult, onAuthStateChanged, signOut
+            getRedirectResult, onAuthStateChanged, signOut, updateProfile
         } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
         import {
             initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
@@ -1632,6 +1632,20 @@
                 pushTimer = setTimeout(() => pushNow(data), 600);
             }
 
+            // Écrit le pseudo dans le document (merge, sans toucher au payload) si
+            // celui du cloud diffère du local. Garantit que le pseudo remonte dès la
+            // connexion, même quand aucune donnée n'a changé (donc aucun push complet).
+            function syncPseudo(cloudPseudo) {
+                if (!currentUser) return;
+                const pseudo = (window.__getPseudo ? window.__getPseudo() : '');
+                if (!pseudo || pseudo === cloudPseudo) return;
+                setDoc(doc(db, 'users', currentUser.uid), {
+                    pseudo: pseudo,
+                    updatedBy: pseudo,
+                    updatedAt: serverTimestamp()
+                }, { merge: true }).catch((e) => console.error('[Cloud] pseudo', e));
+            }
+
             // API exposée à l'app classique.
             window.Cloud = {
                 isSignedIn: () => !!currentUser,
@@ -1669,6 +1683,12 @@
                 if (!user) { setCloud('signedout', { email: null, updatedAt: null, updatedBy: null }); return; }
                 setCloud('connected', { email: user.email || null });
 
+                // Reporte le pseudo comme displayName (visible dans Authentication).
+                const pseudo = (window.__getPseudo ? window.__getPseudo() : '');
+                if (pseudo && user.displayName !== pseudo) {
+                    updateProfile(user, { displayName: pseudo }).catch((e) => console.error('[Cloud] profile', e));
+                }
+
                 let first = true;
                 unsubscribeSnap = onSnapshot(doc(db, 'users', user.uid), (snap) => {
                     // Ignore l'écho de nos propres écritures (anti-boucle).
@@ -1698,7 +1718,11 @@
                         if (JSON.stringify(merged) !== JSON.stringify(window.__getLocalData())) {
                             window.__applyCloudData(merged);
                         }
-                        if (JSON.stringify(merged) !== JSON.stringify(cloud)) pushNow(merged);
+                        if (JSON.stringify(merged) !== JSON.stringify(cloud)) {
+                            pushNow(merged); // écrit aussi le pseudo
+                        } else {
+                            syncPseudo(snap.data().pseudo); // rien à pousser → écrit quand même le pseudo
+                        }
                         setCloud('synced', meta);
                         return;
                     }
