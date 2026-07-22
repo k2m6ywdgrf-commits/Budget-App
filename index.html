@@ -530,8 +530,14 @@
             localStorage.setItem('lumina_budget_data', JSON.stringify(data));
         }
 
+        // Vrai pendant l'application de données venues du cloud : empêche que les
+        // rendus (calculateBudget → saveToLocalStorage) ne repoussent vers le cloud
+        // et ne créent une boucle de synchronisation.
+        let isApplyingCloud = false;
+
         function saveToLocalStorage() {
             writeLocalOnly();
+            if (isApplyingCloud) return; // rendu déclenché par le cloud → pas de push
             // Point de passage unique : on greffe le cloud par-dessus.
             // No-op si l'utilisateur est déconnecté.
             if (window.Cloud && window.Cloud.push) {
@@ -554,8 +560,13 @@
             if (!profiles.find(p => p.id === currentProfileId)) {
                 currentProfileId = profiles[0].id;
             }
-            writeLocalOnly();
-            rerenderAll();
+            isApplyingCloud = true;
+            try {
+                writeLocalOnly();
+                rerenderAll();
+            } finally {
+                isApplyingCloud = false;
+            }
         };
 
         // Fusion NON destructive local + cloud (union par id), pour la 1re connexion.
@@ -1684,13 +1695,19 @@
                         // 1re connexion : fusion non destructive local + cloud.
                         first = false;
                         const merged = window.__mergeData(cloud);
-                        window.__applyCloudData(merged);
+                        if (JSON.stringify(merged) !== JSON.stringify(window.__getLocalData())) {
+                            window.__applyCloudData(merged);
+                        }
                         if (JSON.stringify(merged) !== JSON.stringify(cloud)) pushNow(merged);
                         setCloud('synced', meta);
                         return;
                     }
-                    // Mise à jour venue d'un autre appareil.
-                    window.__applyCloudData(cloud);
+                    // Mise à jour venue d'un autre appareil : ne réapplique (et ne
+                    // relance les rendus) que si le cloud diffère vraiment du local.
+                    // Sinon c'est l'écho de notre propre écriture → on ignore.
+                    if (JSON.stringify(cloud) !== JSON.stringify(window.__getLocalData())) {
+                        window.__applyCloudData(cloud);
+                    }
                     setCloud('synced', meta);
                 }, (err) => { console.error('[Cloud] snapshot', err); setCloud(navigator.onLine ? 'error' : 'offline'); });
             });
