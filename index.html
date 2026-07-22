@@ -114,7 +114,13 @@
         
         <header class="flex justify-between items-center mb-6 pt-2 z-10">
             <div>
-                <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Budget</h1>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Budget</h1>
+                    <button onclick="openCloudModal()" aria-label="État du cloud" class="relative w-7 h-7 rounded-full flex items-center justify-center active:scale-90 transition-transform">
+                        <i id="cloud-icon" class="fa-solid fa-cloud text-base text-slate-500 transition-colors duration-300"></i>
+                        <span id="cloud-icon-dot" class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-slate-500 border border-[#060410] transition-colors duration-300"></span>
+                    </button>
+                </div>
                 <p class="text-xs text-slate-400 font-medium">Simulateur de reste à vivre</p>
             </div>
             <div class="flex items-center gap-2 flex-shrink-0">
@@ -253,25 +259,6 @@
                     </button>
                 </div>
 
-                <!-- Synchronisation cloud (Firebase) -->
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between">
-                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                            <i class="fa-solid fa-cloud text-cyan-400"></i> Sauvegarde cloud
-                        </h4>
-                        <span id="cloud-status" class="text-[11px] font-semibold text-slate-500 flex items-center gap-1.5">
-                            <i class="fa-solid fa-circle text-[6px]"></i> <span id="cloud-status-text">Hors ligne</span>
-                        </span>
-                    </div>
-                    <p id="cloud-user" class="hidden text-[11px] text-slate-400 text-center w-full"></p>
-                    <button id="cloud-auth-btn" onclick="cloudAuthAction()" class="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-slate-200 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 active:scale-98 transition-transform">
-                        <i class="fa-brands fa-google text-cyan-400"></i> <span id="cloud-auth-label">Se connecter avec Google</span>
-                    </button>
-                    <p class="text-[11px] text-slate-500 leading-relaxed text-center w-full">Connectez-vous pour synchroniser vos budgets entre vos appareils. La 1<sup>re</sup> connexion fusionne, sans rien perdre.</p>
-                </div>
-
-                <div class="h-px bg-white/10"></div>
-
                 <div class="space-y-3 text-center">
                     <p class="text-xs text-slate-400 leading-relaxed text-center w-full">Vos données restent stockées localement sur votre iPhone (PWA). La sauvegarde/import inclut tous vos budgets (Perso, Couple, etc.).</p>
                     <button onclick="exportData()" class="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-slate-200 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 active:scale-98 transition-transform">
@@ -282,6 +269,40 @@
                         <input type="file" id="import-file" onchange="importData(event)" class="hidden" accept=".json">
                     </label>
                 </div>
+            </div>
+        </div>
+
+        <div id="cloud-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+            <div class="glass-modal w-full max-w-sm rounded-3xl p-6 space-y-5 shadow-2xl border border-white/10">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-sm text-cyan-400 uppercase tracking-widest">État du cloud</h3>
+                    <button onclick="toggleModal('cloud-modal')" class="text-slate-400 hover:text-white p-1">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="bg-white/[0.03] border border-white/10 rounded-2xl p-5 space-y-2">
+                    <div class="flex items-center gap-3">
+                        <span id="cloud-modal-dot" class="w-3.5 h-3.5 rounded-full bg-slate-500 flex-shrink-0"></span>
+                        <span id="cloud-modal-status" class="text-xl font-bold text-white">Non connecté</span>
+                    </div>
+                    <p id="cloud-modal-user" class="text-sm text-slate-400">Cloud disponible — connectez-vous pour synchroniser.</p>
+                    <p id="cloud-modal-updated" class="hidden text-sm text-slate-400"></p>
+                </div>
+
+                <div class="space-y-3">
+                    <h4 class="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">Signification de l'icône</h4>
+                    <ul class="space-y-2.5 text-sm">
+                        <li class="flex items-center gap-3"><span class="w-3 h-3 rounded-full bg-slate-500 flex-shrink-0"></span><span class="text-slate-300"><b class="text-white font-semibold">Gris</b> — cloud disponible, non connecté</span></li>
+                        <li class="flex items-center gap-3"><span class="w-3 h-3 rounded-full bg-emerald-400 flex-shrink-0"></span><span class="text-slate-300"><b class="text-white font-semibold">Vert</b> — synchronisé</span></li>
+                        <li class="flex items-center gap-3"><span class="w-3 h-3 rounded-full bg-amber-500 flex-shrink-0"></span><span class="text-slate-300"><b class="text-white font-semibold">Jaune</b> — enregistrement en cours</span></li>
+                        <li class="flex items-center gap-3"><span class="w-3 h-3 rounded-full bg-rose-400 flex-shrink-0"></span><span class="text-slate-300"><b class="text-white font-semibold">Rouge</b> — erreur de synchronisation</span></li>
+                    </ul>
+                </div>
+
+                <button id="cloud-auth-btn" onclick="cloudAuthAction()" class="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-slate-200 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 active:scale-98 transition-transform">
+                    <i class="fa-brands fa-google text-cyan-400"></i> <span id="cloud-auth-label">Se connecter avec Google</span>
+                </button>
             </div>
         </div>
 
@@ -439,6 +460,7 @@
             renderProfileSwitcher();
             calculateBudget();
             renderSavingsGoals();
+            renderCloudUI();
         }
 
         function getCurrentProfile() {
@@ -541,32 +563,88 @@
             if (!document.getElementById('profile-modal').classList.contains('hidden')) renderProfilesModalList();
         }
 
-        // Indicateur d'état de synchro dans les réglages.
-        window.__onAuthChange = function (user, status) {
-            const label = document.getElementById('cloud-auth-label');
-            const userEl = document.getElementById('cloud-user');
-            const statusWrap = document.getElementById('cloud-status');
-            const statusText = document.getElementById('cloud-status-text');
-            if (label) label.innerText = user ? 'Se déconnecter' : 'Se connecter avec Google';
-            if (userEl) {
-                if (user) { userEl.innerText = user.email || 'Connecté'; userEl.classList.remove('hidden'); }
-                else userEl.classList.add('hidden');
-            }
-            if (!statusWrap || !statusText) return;
-            const map = {
-                'synced':    ['Synchronisé', 'text-emerald-400'],
-                'saving':    ['Enregistrement…', 'text-cyan-400'],
-                'error':     ['Erreur', 'text-rose-400'],
-                'offline':   ['Hors ligne', 'text-slate-500'],
-                'connected': ['Connecté', 'text-emerald-400']
-            };
-            const [txt, cls] = map[status] || map['offline'];
-            statusWrap.className = 'text-[11px] font-semibold flex items-center gap-1.5 ' + cls;
-            statusText.innerText = txt;
+        // ── État du cloud (icône du header + modal dédiée) ──
+        let cloudUser = null;
+        let cloudStatus = 'offline';
+        let cloudUpdatedAt = null; // horodatage (ms) de la dernière écriture cloud
+
+        // Palette d'état : [libellé, couleur de texte, couleur de pastille]
+        const CLOUD_STATES = {
+            offline:   ['Non connecté',              'text-slate-400',   'bg-slate-500'],
+            connected: ['Synchronisé',               'text-emerald-400', 'bg-emerald-400'],
+            synced:    ['Synchronisé',               'text-emerald-400', 'bg-emerald-400'],
+            saving:    ['Enregistrement en cours',   'text-amber-400',   'bg-amber-500'],
+            error:     ['Erreur de synchronisation', 'text-rose-400',    'bg-rose-400']
         };
 
+        window.__onAuthChange = function (user, status) {
+            cloudUser = user;
+            cloudStatus = status;
+            renderCloudUI();
+        };
+
+        // Appelé par le module Firebase à chaque snapshot avec l'horodatage serveur.
+        window.__setCloudTimestamp = function (ms) {
+            cloudUpdatedAt = ms;
+            renderCloudUI();
+        };
+
+        function renderCloudUI() {
+            const [label, textCls, dotCls] = CLOUD_STATES[cloudStatus] || CLOUD_STATES.offline;
+
+            // Icône nuage du header (couleur = état)
+            const icon = document.getElementById('cloud-icon');
+            const iconDot = document.getElementById('cloud-icon-dot');
+            if (icon) icon.className = 'fa-solid fa-cloud text-base transition-colors duration-300 ' + textCls;
+            if (iconDot) iconDot.className = 'absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-[#060410] transition-colors duration-300 ' + dotCls;
+
+            // Contenu de la modal
+            const dot = document.getElementById('cloud-modal-dot');
+            const statusEl = document.getElementById('cloud-modal-status');
+            const userEl = document.getElementById('cloud-modal-user');
+            const updatedEl = document.getElementById('cloud-modal-updated');
+            const authLabel = document.getElementById('cloud-auth-label');
+
+            if (dot) dot.className = 'w-3.5 h-3.5 rounded-full flex-shrink-0 ' + dotCls;
+            if (statusEl) { statusEl.innerText = label; statusEl.className = 'text-xl font-bold ' + textCls; }
+            if (authLabel) authLabel.innerText = cloudUser ? 'Se déconnecter' : 'Se connecter avec Google';
+
+            if (userEl) {
+                if (cloudUser) userEl.innerHTML = 'Connecté : <span class="text-cyan-400 font-medium">' + escapeHtml(cloudUser.email || 'compte Google') + '</span>';
+                else userEl.innerText = 'Cloud disponible — connectez-vous pour synchroniser.';
+            }
+            if (updatedEl) {
+                if (cloudUser && cloudUpdatedAt) {
+                    const profile = getCurrentProfile();
+                    const who = profile ? profile.name : '';
+                    updatedEl.innerHTML = 'Dernière modif : ' + (who ? '<b class="text-white font-semibold">' + escapeHtml(who) + '</b> · ' : '') + '<span class="text-slate-500">' + formatCloudDate(cloudUpdatedAt) + '</span>';
+                    updatedEl.classList.remove('hidden');
+                } else {
+                    updatedEl.classList.add('hidden');
+                }
+            }
+        }
+
+        function formatCloudDate(ms) {
+            const d = new Date(ms);
+            const pad = (n) => String(n).padStart(2, '0');
+            return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+        }
+
+        function escapeHtml(s) {
+            return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        function openCloudModal() {
+            renderCloudUI();
+            toggleModal('cloud-modal');
+        }
+
         function cloudAuthAction() {
-            if (!window.Cloud) return;
+            if (!window.Cloud) {
+                alert("La sauvegarde cloud n'est pas encore configurée (config Firebase manquante).");
+                return;
+            }
             if (window.Cloud.isSignedIn && window.Cloud.isSignedIn()) window.Cloud.signOut();
             else window.Cloud.signIn();
         }
@@ -1494,6 +1572,12 @@
                         // Cloud vide → migration montante des données locales.
                         if (first) { first = false; pushNow(window.__getLocalData()); }
                         return;
+                    }
+
+                    // Horodatage serveur → ligne « Dernière modif » dans la modal.
+                    const ts = snap.data().updatedAt;
+                    if (ts && ts.toMillis && window.__setCloudTimestamp) {
+                        window.__setCloudTimestamp(ts.toMillis());
                     }
 
                     let cloud;
